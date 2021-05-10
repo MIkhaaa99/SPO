@@ -26,7 +26,7 @@ public class Lexer {
     );
 
     public static void main(String[] args) {
-        String[] str = {"a=a+5;$"};
+        String[] str = {"while(a+b<0){};$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -39,11 +39,14 @@ public class Lexer {
         }
 
         print(lexemes);
+        List<Lexeme> lexemes1 = new ArrayList<>(lexemes);
 
         Parser parser = new Parser();
         parser.setLexemes(new ArrayList<>(lexemes));
         parser.lang();
-        
+
+/*        PolishNotation polishNotation = new PolishNotation(lexemes1);
+        System.out.println(polishNotation.translateToPolishNotation());*/
     }
 
     private static Lexeme extractNextLexeme(StringBuilder input) {
