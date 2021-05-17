@@ -154,7 +154,7 @@ public class Parser {
             throw new RuntimeException("Operator IF error");
         }
         while(!lexemes.isEmpty()) {
-            if(lexemes.get(1).getTerminal().getIdentifier()=="R_S_BR") {
+            if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
                 break;
             }
             expr();
