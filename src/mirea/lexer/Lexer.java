@@ -26,7 +26,7 @@ public class Lexer {
     );
 
     public static void main(String[] args) {
-        String[] str = {"while(a+b<0){}$"};
+        String[] str = {"k=-1;$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 

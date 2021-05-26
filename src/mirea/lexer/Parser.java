@@ -138,7 +138,8 @@ public class Parser {
         }
     }
 
-    private void logicalExpression() {
+    private void
+    logicalExpression() {
         mathExpression();
         while(lexemes.get(0).getTerminal().getIdentifier() == "LOGICAL_OP") {
             lexemes.remove(0);
@@ -180,6 +181,9 @@ public class Parser {
             throw new RuntimeException("Operator ELSE error");
         }
         while(!lexemes.isEmpty()) {
+            if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
+                break;
+            }
             expr();
         }
         if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
