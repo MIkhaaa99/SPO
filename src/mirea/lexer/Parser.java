@@ -3,7 +3,10 @@ package mirea.lexer;
 import java.util.List;
 
 public class Parser {
+
     private List<Lexeme> lexemes;
+
+    private Integer point = 0;
 
     public List<Lexeme> getLexemes() {
         return lexemes;
@@ -14,184 +17,104 @@ public class Parser {
     }
 
     public void lang() {
-        while(!lexemes.isEmpty()) {
+        expr();
+        while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
             expr();
         }
     }
 
     private void expr() throws RuntimeException {
-        if(lexemes.get(0).getTerminal().getIdentifier() == "VAR") {
+        if(currentToken().getTerminal().getIdentifier().equals("VAR")) {
             assignExpression();
         }
-        else if(lexemes.get(0).getTerminal().getIdentifier() == "IF_KEYWORD") {
+        else if(currentToken().getTerminal().getIdentifier().equals("IF_KEYWORD")) {
             ifExpression();
         }
-        else if(lexemes.get(0).getTerminal().getIdentifier() == "WHILE_KEYWORD") {
+        else if(currentToken().getTerminal().getIdentifier().equals("WHILE_KEYWORD")) {
             whileExpression();
         }
-        else if(lexemes.get(0).getTerminal().getIdentifier() == "DO_KEYWORD") {
-            doWhileExpression();
-        }
-        else if(lexemes.isEmpty())
-            throw new RuntimeException("Token not found");
     }
 
     private void assignExpression() {
 
-        //Терминал VAR
-        lexemes.remove(0);
+        match(List.of("VAR"));
+        match(List.of("ASSIGN"));
 
-        //Терминал ASSIGN
-        if(lexemes.get(0).getTerminal().getIdentifier() == "ASSIGN") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Error assignOperation");
-        }
-
-        if(lexemes.get(0).getTerminal().getIdentifier() == "OP") {
-            lexemes.remove(0);
-        }
-
-        //Нетерминал mathOperation
         mathExpression();
 
-        //Терминал SC
-        if(lexemes.get(0).getTerminal().getIdentifier() == "SC") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Error assignOperation");
-        }
+        match(List.of("SC"));
+
     }
 
     private void mathExpression() {
-        if(lexemes.get(0).getTerminal().getIdentifier() == "LBR") {
-            mathExprWbr();
-        }
-        else if(lexemes.get(0).getTerminal().getIdentifier() == "NUMBER" || lexemes.get(0).getTerminal().getIdentifier() == "VAR") {
+
+        if(List.of("VAR", "NUMBER").contains(currentToken().getTerminal().getIdentifier())) {
             value();
         }
-        else {
-            throw new RuntimeException("Error mathExpression");
+        else if(List.of("LBR").contains(currentToken().getTerminal().getIdentifier())) {
+            mathExprWbr();
         }
-
-        while(lexemes.get(0).getTerminal().getIdentifier() == "OP") {
-            //Терминал OP
-            lexemes.remove(0);
-            if(lexemes.get(0).getTerminal().getIdentifier() == "NUMBER" || lexemes.get(0).getTerminal().getIdentifier() == "VAR" || lexemes.get(0).getTerminal().getIdentifier() == "LBR") {
+        while(List.of("OP").contains(currentToken().getTerminal().getIdentifier())) {
+            match(List.of("OP"));
+            if(List.of("VAR", "NUMBER", "LBR").contains(currentToken().getTerminal().getIdentifier())) {
                 mathExpression();
             }
             else {
-                throw new RuntimeException("Error mathExpression");
+                throw new RuntimeException("Invalid token");
             }
         }
 
     }
 
     private void mathExprWbr() {
-        //Терминал LBR
-        lexemes.remove(0);
+
+        match(List.of("LBR"));
         mathExpression();
-        if(lexemes.get(0).getTerminal().getIdentifier() == "RBR") {
-            lexemes.remove(0);
-        }
+        match(List.of("RBR"));
     }
 
     private void value() {
-        if(lexemes.get(0).getTerminal().getIdentifier() == "NUMBER" || lexemes.get(0).getTerminal().getIdentifier() == "VAR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Error value");
-        }
+        match(List.of("NUMBER", "VAR"));
     }
 
     private void ifExpression() {
         ifHead();
         body();
-        if(lexemes.size()!=0 && lexemes.get(0).getTerminal().getIdentifier() == "ELSE_KEYWORD") {
+        if(lexemes.size()<point && List.of("ELSE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
             elseHead();
-            elseBody();
+            body();
         }
     }
 
     private void ifHead() {
-        //Терминал IF_KEYWORD
-        lexemes.remove(0);
+        match(List.of("IF_KEYWORD"));
         condition();
     }
 
     private void condition() {
-        if(lexemes.get(0).getTerminal().getIdentifier()=="LBR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator IF error");
-        }
+        match(List.of("LBR"));
         logicalExpression();
-        if(lexemes.get(0).getTerminal().getIdentifier()=="RBR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator IF error");
-        }
+        match(List.of("RBR"));
     }
 
-    private void
-    logicalExpression() {
-        mathExpression();
-        while(lexemes.get(0).getTerminal().getIdentifier() == "LOGICAL_OP") {
-            lexemes.remove(0);
+    private void logicalExpression() {
+        value();
+        while(List.of("LOGICAL_OP").contains(currentToken().getTerminal().getIdentifier())) {
+            match(List.of("LOGICAL_OP"));
             value();
         }
     }
 
     private void body() {
-        if(lexemes.get(0).getTerminal().getIdentifier()=="L_S_BR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator IF error");
-        }
-        while(!lexemes.isEmpty()) {
-            if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
-                break;
-            }
+        match(List.of("L_S_BR"));
+        while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
             expr();
         }
-        if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator IF error");
-        }
+        match(List.of("R_S_BR"));
     }
 
     private void elseHead() {
-        //Терминал ELSE_KEYWORD (проверка терминала есть в вызывающем методе)
-        lexemes.remove(0);
-    }
-
-    private void elseBody() {
-        if(lexemes.get(0).getTerminal().getIdentifier()=="L_S_BR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator ELSE error");
-        }
-        while(!lexemes.isEmpty()) {
-            if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
-                break;
-            }
-            expr();
-        }
-        if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator ELSE error");
-        }
+        match(List.of("ELSE_KEYWORD"));
     }
 
     private void whileExpression() {
@@ -200,37 +123,23 @@ public class Parser {
     }
 
     private void whileHead() {
-        if(lexemes.get(0).getTerminal().getIdentifier() == "WHILE_KEYWORD") {
-            lexemes.remove(0);
-        }
+        match(List.of("WHILE_KEYWORD"));
         condition();
     }
 
-    private void doWhileExpression() {
-        //Терминал DO_KEYWORD
-        lexemes.remove(0);
-        if(lexemes.get(0).getTerminal().getIdentifier() == "L_S_BR") {
-            lexemes.remove(0);
+    private Lexeme currentToken() {
+        if(point>=lexemes.size()) {
+            point = lexemes.size()-1;
+        }
+        return lexemes.get(point);
+    }
+
+    private void match(List<String> terminal) {
+        if(terminal.contains(currentToken().getTerminal().getIdentifier())) {
+            point++;
         }
         else {
-            throw new RuntimeException("Operator doWhileExpression error");
-        }
-        while(!lexemes.isEmpty()) {
-            expr();
-        }
-        if(lexemes.get(0).getTerminal().getIdentifier()=="R_S_BR") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator doWhileExpression error");
-        }
-        whileHead();
-        //Терминал SC
-        if(lexemes.get(0).getTerminal().getIdentifier() == "SC") {
-            lexemes.remove(0);
-        }
-        else {
-            throw new RuntimeException("Operator doWhileExpression error");
+            throw new RuntimeException("Invalid token");
         }
     }
 

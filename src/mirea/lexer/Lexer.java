@@ -10,7 +10,7 @@ public class Lexer {
             new Terminal("WHILE_KEYWORD", "while", 1),
             new Terminal("IF_KEYWORD", "if", 1),
             new Terminal("ELSE_KEYWORD", "else", 1),
-            new Terminal("OP", "[+-/*]"),
+            new Terminal("OP", "[+/*]"),
             new Terminal("WS", "\\s+", true),
             new Terminal("TAB", "\\t+", true),
             new Terminal("ENTER", "\\n+", true),
@@ -19,14 +19,13 @@ public class Lexer {
             new Terminal("LOGICAL_OP", "<|>|==|<=|>="),
             new Terminal("ASSIGN", "="),
             new Terminal("SC", ";"),
-            new Terminal("NUMBER", "[0-9]+"),
+            new Terminal("NUMBER", "0|(-)?[1-9]?[0-9]*"),
             new Terminal("L_S_BR", "\\{"),
-            new Terminal("R_S_BR", "\\}"),
-            new Terminal("DO_KEYWORD", "do", 1)
+            new Terminal("R_S_BR", "\\}")
     );
 
     public static void main(String[] args) {
-        String[] str = {"k=-1;$"};
+        String[] str = {"o=o+1; if(x>0){a=a+1; a=a+5;} b=b+1;$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -39,13 +38,12 @@ public class Lexer {
         }
 
         print(lexemes);
-        List<Lexeme> lexemes1 = new ArrayList<>(lexemes);
 
         Parser parser = new Parser();
         parser.setLexemes(new ArrayList<>(lexemes));
         parser.lang();
 
-        PolishNotation polishNotation = new PolishNotation(lexemes1);
+        PolishNotation polishNotation = new PolishNotation(lexemes);
         System.out.println(polishNotation.translateToPolishNotation());
     }
 
