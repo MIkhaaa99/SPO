@@ -21,12 +21,11 @@ public class Lexer {
             new Terminal("SC", ";"),
             new Terminal("NUMBER", "[0-9]+"),
             new Terminal("L_S_BR", "\\{"),
-            new Terminal("R_S_BR", "\\}"),
-            new Terminal("DO_KEYWORD", "do", 1)
+            new Terminal("R_S_BR", "\\}")
     );
 
     public static void main(String[] args) {
-        String[] str = {"k=-1;$"};
+        String[] str = {"d=d+2; while(0>a){a=3; while(b<0){b=b+2;}} while(c<0){c=c+4;}$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -39,14 +38,17 @@ public class Lexer {
         }
 
         print(lexemes);
-        List<Lexeme> lexemes1 = new ArrayList<>(lexemes);
 
         Parser parser = new Parser();
         parser.setLexemes(new ArrayList<>(lexemes));
         parser.lang();
 
-        PolishNotation polishNotation = new PolishNotation(lexemes1);
-        System.out.println(polishNotation.translateToPolishNotation());
+        PolishNotation polishNotation = new PolishNotation();
+        List<String> polishNotationToList = polishNotation.translateToPolishNotation(lexemes);
+        System.out.println(polishNotationToList);
+
+/*        StackMachine stackMachine = new StackMachine();
+        System.out.println(stackMachine.execute(List.of("5", "5", "+")));*/
     }
 
     private static Lexeme extractNextLexeme(StringBuilder input) {
