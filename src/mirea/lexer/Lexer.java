@@ -25,7 +25,7 @@ public class Lexer {
     );
 
     public static void main(String[] args) {
-        String[] str = {"d=d+2; while(0>a){a=3; while(b<0){b=b+2;}} while(c<0){c=c+4;}$"};
+        String[] str = {"a=a+6; while(b<0){b=b+4; while(c>9){}}$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -43,12 +43,12 @@ public class Lexer {
         parser.setLexemes(new ArrayList<>(lexemes));
         parser.lang();
 
-        PolishNotation polishNotation = new PolishNotation();
+/*        PolishNotation polishNotation = new PolishNotation();
         List<String> polishNotationToList = polishNotation.translateToPolishNotation(lexemes);
-        System.out.println(polishNotationToList);
+        System.out.println(polishNotationToList);*/
 
-/*        StackMachine stackMachine = new StackMachine();
-        System.out.println(stackMachine.execute(List.of("5", "5", "+")));*/
+        StackMachine stackMachine = new StackMachine();
+        System.out.println("\n" + "Выполнение кода: " + stackMachine.execute(List.of("5", "6", ">", "10", "!F", "a" , "5", "=", "13", "!", "b", "6", "=", "!T")));
     }
 
     private static Lexeme extractNextLexeme(StringBuilder input) {

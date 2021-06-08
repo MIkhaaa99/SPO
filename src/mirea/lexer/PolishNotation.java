@@ -6,7 +6,6 @@ import java.util.Stack;
 
 public class PolishNotation {
 
-    //private List<Lexeme> currentList;
     private List<String> polishNotation = new ArrayList<>();
     private Stack<Lexeme> stringStack = new Stack<>();
 
@@ -48,7 +47,7 @@ public class PolishNotation {
         return lexemeList;
     }
 
-    private List<Lexeme> parseOnIfExpression(List<Lexeme> currentList) {
+/*    private List<Lexeme> parseOnIfExpression(List<Lexeme> currentList) {
         List<Lexeme> lexemeList = new ArrayList<>();
         while(!currentList.get(0).getValue().equals("}")) {
             lexemeList.add(currentList.get(0));
@@ -66,11 +65,32 @@ public class PolishNotation {
             currentList.remove(0);
         }
         return lexemeList;
-    }
+    }*/
 
     public List<String> translateToPolishNotation(List<Lexeme> currentList) {
         while(currentList.size()!=0) {
             polishNotation.addAll(executeTransformation(currentList));
+            for(int i=0; i<polishNotation.size(); i++) {
+                if(polishNotation.get(i).equals("START")) {
+                    for(int j=polishNotation.size()-1; j>0; j--) {
+                        if(polishNotation.get(j).equals("END")) {
+                            polishNotation.set(j, "ENDCHECK");
+                            polishNotation.set(i, String.valueOf(j+1));
+                            break;
+                        }
+                    }
+                }
+            }
+            for(int i=0; i<polishNotation.size(); i++) {
+                if(polishNotation.get(i).equals("!F")) {
+                    for(int j=polishNotation.size()-1; j>0; j--) {
+                        if(polishNotation.get(j).equals("ENDCHECK")) {
+                            polishNotation.set(j, String.valueOf(i+1));
+                            break;
+                        }
+                    }
+                }
+            }
         }
         return polishNotation;
     }
@@ -80,22 +100,13 @@ public class PolishNotation {
         List<Lexeme> lexemeList = new ArrayList<>();
         List<String> completeExpression = new ArrayList<>();
 
-            if(currentList.get(0).getTerminal().getIdentifier()=="WHILE_KEYWORD") {
+            if (currentList.get(0).getTerminal().getIdentifier() == "WHILE_KEYWORD") {
                 List<Lexeme> whileExpr = parseOnWhileExpression(currentList);
-
-                completeExpression.addAll(convertExpression(getHead(whileExpr)));
-                completeExpression.add(" ");
-                completeExpression.add("!F");
-                List<String> list = getExpressionFromBody(getBody(whileExpr));
-                completeExpression.addAll(list);
-                completeExpression.add("0");
-                completeExpression.add("!T");
-
-                completeExpression.set(completeExpression.indexOf(" "), String.valueOf(polishNotation.size() + completeExpression.size()-1));
+                completeExpression=getExpressionFromBody(whileExpr);
 
                 System.out.println();
             }
-            else if(currentList.get(0).getTerminal().getIdentifier()=="IF_KEYWORD") {
+/*            else if(currentList.get(0).getTerminal().getIdentifier()=="IF_KEYWORD") {
                 List<String> polishNotationForIf;
                 List<Lexeme> ifExpr = parseOnIfExpression(currentList);
 
@@ -121,61 +132,85 @@ public class PolishNotation {
 
                 isElse = false;
                 System.out.println();
-            }
-            else if(currentList.get(0).getTerminal().getIdentifier()=="VAR") {
+            }*/
+            else if (currentList.get(0).getTerminal().getIdentifier() == "VAR") {
                 lexemeList = parseOnExpression(currentList);
-                completeExpression.addAll(convertExpression(lexemeList));
+                List<String> stringList = new ArrayList<>();
+                for (int i = 0; i < lexemeList.size(); i++) {
+                    stringList.add(lexemeList.get(i).getValue());
+                }
+                completeExpression=convertExpression(lexemeList);
             }
-
         return completeExpression;
     }
 
-    private List<Lexeme> getHead(List<Lexeme> listExpr) {
-        List<Lexeme> headStringList = new ArrayList<>();
-        while(!listExpr.get(0).getTerminal().getIdentifier().equals("VAR") && !listExpr.get(0).getTerminal().getIdentifier().equals("NUMBER")) {
-            listExpr.remove(0);
-        }
-        while(!listExpr.get(2).getTerminal().getIdentifier().equals("L_S_BR")) {
-            headStringList.add(listExpr.get(0));
-            listExpr.remove(0);
-        }
-        headStringList.add(listExpr.get(0));
-        listExpr.remove(0);
-        return headStringList;
-    }
-
-    private List<Lexeme> getBody(List<Lexeme> listExpr) {
-        while(!listExpr.get(0).getTerminal().getIdentifier().equals("L_S_BR")) {
-            listExpr.remove(0);
-        }
-        listExpr.remove(0);
-        listExpr.remove(listExpr.size()-1);
-        return listExpr;
-    }
-
     private List<String> getExpressionFromBody(List<Lexeme> listWhileExpr) {
-        List<Lexeme> listExpressionsFromBody = new ArrayList<>();
-        List<String> convertToPN = new ArrayList<>();
-        while(listWhileExpr.size()!=0) {
-
-            if(listWhileExpr.get(0).getTerminal().getIdentifier()=="SC") {
-                listWhileExpr.remove(0);
-                convertToPN.addAll(convertExpression(listExpressionsFromBody));
-            }
-            if(listWhileExpr.size()==0) {
-                break;
-            }
-            if(listWhileExpr.get(0).getTerminal().getIdentifier()=="WHILE_KEYWORD") {
-                convertToPN.addAll(executeTransformation(listWhileExpr));
-            }
-            if(listWhileExpr.size()==0) {
-                break;
-            }
-            listExpressionsFromBody.add(listWhileExpr.get(0));
+        List<String> result = new ArrayList<>();
+        List<Lexeme> headStringList = new ArrayList<>();
+        List<String> headResult = new ArrayList<>();
+        int point = 0;
+        while(!List.of("VAR", "NUMBER").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
             listWhileExpr.remove(0);
         }
-        //convertToPN.addAll(convertExpression(listExpressionsFromBody));
-        return convertToPN;
+        while(!listWhileExpr.get(2).getTerminal().getIdentifier().equals("L_S_BR")) {
+            headStringList.add(listWhileExpr.get(0));
+            listWhileExpr.remove(0);
+        }
+        headStringList.add(listWhileExpr.get(0));
+        listWhileExpr.remove(0);
+        headResult.addAll(convertExpression(headStringList));
+        headResult.add("START");
+        headResult.add("!F");
+        List<Lexeme> bodyStringList = new ArrayList<>();
+        List<String> bodyResult = new ArrayList<>();
+        while(!List.of("VAR", "WHILE_KEYWORD").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+            listWhileExpr.remove(0);
+            if(listWhileExpr.size()==0) {
+                headResult.add(String.valueOf(polishNotation.size()));
+                headResult.add("!T");
+                headResult.set(headResult.indexOf("START"), String.valueOf(headResult.size()+polishNotation.size()-1));
+                return headResult;
+            }
+        }
+        listWhileExpr.remove(listWhileExpr.size()-1);
+
+        while(listWhileExpr.size()!=0) {
+            if(List.of("WHILE_KEYWORD").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+                while(!List.of("R_S_BR").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+                    if(List.of("L_S_BR").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+                        point++;
+                    }
+                    bodyStringList.add(listWhileExpr.get(0));
+                    listWhileExpr.remove(0);
+                }
+                do {
+                    bodyStringList.add(listWhileExpr.get(0));
+                    listWhileExpr.remove(0);
+                    point--;
+                }
+                while(point!=0);
+                bodyResult.addAll(getExpressionFromBody(bodyStringList));
+            }
+
+            else if(List.of("VAR").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+                while(!List.of("SC").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+                    bodyStringList.add(listWhileExpr.get(0));
+                    listWhileExpr.remove(0);
+                }
+                listWhileExpr.remove(0);
+                if(listWhileExpr.size()!=0 && List.of("R_S_BR").contains(listWhileExpr.get(0).getTerminal().getIdentifier())) {
+                    listWhileExpr.remove(0);
+                }
+                bodyResult.addAll(convertExpression(bodyStringList));
+            }
+        }
+        result.addAll(headResult);
+        result.addAll(bodyResult);
+
+        result.add("END");
+        result.add("!T");
+
+        return result;
     }
 
     private List<String> convertExpression(List<Lexeme> lexemeList) {
