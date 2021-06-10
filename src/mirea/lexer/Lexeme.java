@@ -18,4 +18,8 @@ public class Lexeme {
         return value;
     }
 
+    @Override
+    public String toString() {
+        return terminal.getIdentifier();
+    }
 }

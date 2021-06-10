@@ -1,6 +1,7 @@
 package mirea.lexer;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Lexer {
@@ -19,13 +20,13 @@ public class Lexer {
             new Terminal("LOGICAL_OP", "<|>|==|<=|>="),
             new Terminal("ASSIGN", "="),
             new Terminal("SC", ";"),
-            new Terminal("NUMBER", "[0-9]+"),
+            new Terminal("NUMBER", "0|(-)?[1-9]+[0-9]*"),
             new Terminal("L_S_BR", "\\{"),
             new Terminal("R_S_BR", "\\}")
     );
 
     public static void main(String[] args) {
-        String[] str = {"a=a+6; while(b<0){b=b+4; while(c>9){}}$"};
+        String[] str = {"d=d*5; while(a>0){b=b+1;} c=c+1;$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -40,12 +41,10 @@ public class Lexer {
         print(lexemes);
 
         Parser parser = new Parser();
-        parser.setLexemes(new ArrayList<>(lexemes));
-        parser.lang();
-
-/*        PolishNotation polishNotation = new PolishNotation();
-        List<String> polishNotationToList = polishNotation.translateToPolishNotation(lexemes);
-        System.out.println(polishNotationToList);*/
+        parser.setLexemes(lexemes);
+        System.out.println();
+        AstNode astNode = parser.lang();
+        printAst(astNode, 0);
 
         StackMachine stackMachine = new StackMachine();
         System.out.println("\n" + "Выполнение кода: " + stackMachine.execute(List.of("5", "6", ">", "10", "!F", "a" , "5", "=", "13", "!", "b", "6", "=", "!T")));
@@ -113,6 +112,22 @@ public class Lexer {
             System.out.printf("[%s, %s]%n",
                     lexeme.getTerminal().getIdentifier(),
                     lexeme.getValue());
+        }
+    }
+
+    private static String getLevel(int level) {
+        String result = "";
+        for(int i = 0; i < level; i++)
+            result += "\t";
+        return result;
+    }
+
+    private static void printAst(AstNode node, int level) {
+        System.out.println(getLevel(level) + node.getName());
+        Iterator<AstNode> childs = node.getChilds();
+        while(childs.hasNext()) {
+            AstNode n = childs.next();
+            printAst(n, level+1);
         }
     }
 

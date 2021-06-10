@@ -16,126 +16,155 @@ public class Parser {
         this.lexemes = lexemes;
     }
 
-    public void lang() {
-        expr();
-        while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
-            expr();
+    public AstNode lang() {
+        AstNode astNode = new AstNode("lang");
+        astNode.addChild(expr());
+        while(currentToken()!=null && List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
+            astNode.addChild(expr());
         }
+        if(currentToken()!=null && !List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
+            throw new RuntimeException("Invalid token");
+        }
+        return astNode;
     }
 
-    private void expr() throws RuntimeException {
+    private AstNode expr() throws RuntimeException {
+        AstNode astNode = new AstNode("expr");
         if(currentToken().getTerminal().getIdentifier().equals("VAR")) {
-            assignExpression();
+            astNode.addChild(assignExpression());
         }
         else if(currentToken().getTerminal().getIdentifier().equals("IF_KEYWORD")) {
-            ifExpression();
+            astNode.addChild(ifExpression());
         }
         else if(currentToken().getTerminal().getIdentifier().equals("WHILE_KEYWORD")) {
-            whileExpression();
+            astNode.addChild(whileExpression());
         }
+        return astNode;
     }
 
-    private void assignExpression() {
+    private AstNode assignExpression() {
+        AstNode astNode = new AstNode("assignExpression");
+        match(List.of("VAR"), astNode);
+        match(List.of("ASSIGN"), astNode);
 
-        match(List.of("VAR"));
-        match(List.of("ASSIGN"));
+        astNode.addChild(mathExpression());
 
-        mathExpression();
+        match(List.of("SC"), astNode);
 
-        match(List.of("SC"));
-
+        return astNode;
     }
 
-    private void mathExpression() {
-
+    private AstNode mathExpression() {
+        AstNode astNode = new AstNode("mathExpression");
         if(List.of("VAR", "NUMBER").contains(currentToken().getTerminal().getIdentifier())) {
-            value();
+            astNode.addChild(value());
         }
         else if(List.of("LBR").contains(currentToken().getTerminal().getIdentifier())) {
-            mathExprWbr();
+            astNode.addChild(mathExprWbr());
         }
         while(List.of("OP").contains(currentToken().getTerminal().getIdentifier())) {
-            match(List.of("OP"));
+            match(List.of("OP"), astNode);
             if(List.of("VAR", "NUMBER", "LBR").contains(currentToken().getTerminal().getIdentifier())) {
-                mathExpression();
+                astNode.addChild(mathExpression());
             }
             else {
                 throw new RuntimeException("Invalid token");
             }
         }
-
+        return astNode;
     }
 
-    private void mathExprWbr() {
+    private AstNode mathExprWbr() {
+        AstNode astNode = new AstNode("mathExprWbr");
+        match(List.of("LBR"), astNode);
+        astNode.addChild(mathExpression());
+        match(List.of("RBR"), astNode);
 
-        match(List.of("LBR"));
-        mathExpression();
-        match(List.of("RBR"));
+        return astNode;
     }
 
-    private void value() {
-        match(List.of("NUMBER", "VAR"));
+    private AstNode value() {
+        AstNode astNode = new AstNode("value");
+        match(List.of("NUMBER", "VAR"), astNode);
+        return astNode;
     }
 
-    private void ifExpression() {
-        ifHead();
-        body();
+    private AstNode ifExpression() {
+        AstNode astNode = new AstNode("ifExpression");
+        astNode.addChild(ifHead());
+        astNode.addChild(body());
         if(lexemes.size()<point && List.of("ELSE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
-            elseHead();
-            body();
+            astNode.addChild(elseHead());
+            astNode.addChild(body());
         }
+        return astNode;
     }
 
-    private void ifHead() {
-        match(List.of("IF_KEYWORD"));
-        condition();
+    private AstNode ifHead() {
+        AstNode astNode = new AstNode("ifHead");
+        match(List.of("IF_KEYWORD"), astNode);
+        astNode.addChild(condition());
+        return astNode;
     }
 
-    private void condition() {
-        match(List.of("LBR"));
-        logicalExpression();
-        match(List.of("RBR"));
+    private AstNode condition() {
+        AstNode astNode = new AstNode("condition");
+        match(List.of("LBR"), astNode);
+        astNode.addChild(logicalExpression());
+        match(List.of("RBR"), astNode);
+        return astNode;
     }
 
-    private void logicalExpression() {
-        value();
+    private AstNode logicalExpression() {
+        AstNode astNode = new AstNode("logicalExpression");
+        astNode.addChild(value());
         while(List.of("LOGICAL_OP").contains(currentToken().getTerminal().getIdentifier())) {
-            match(List.of("LOGICAL_OP"));
-            value();
+            match(List.of("LOGICAL_OP"), astNode);
+            astNode.addChild(value());
         }
+        return astNode;
     }
 
-    private void body() {
-        match(List.of("L_S_BR"));
+    private AstNode body() {
+        AstNode astNode = new AstNode("body");
+        match(List.of("L_S_BR"), astNode);
         while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
-            expr();
+            astNode.addChild(expr());
         }
-        match(List.of("R_S_BR"));
+        match(List.of("R_S_BR"), astNode);
+        return astNode;
     }
 
-    private void elseHead() {
-        match(List.of("ELSE_KEYWORD"));
+    private AstNode elseHead() {
+        AstNode astNode = new AstNode("elseHead");
+        match(List.of("ELSE_KEYWORD"), astNode);
+        return astNode;
     }
 
-    private void whileExpression() {
-        whileHead();
-        body();
+    private AstNode whileExpression() {
+        AstNode astNode = new AstNode("whileExpression");
+        astNode.addChild(whileHead());
+        astNode.addChild(body());
+        return astNode;
     }
 
-    private void whileHead() {
-        match(List.of("WHILE_KEYWORD"));
-        condition();
+    private AstNode whileHead() {
+        AstNode astNode = new AstNode("whileHead");
+        match(List.of("WHILE_KEYWORD"), astNode);
+        astNode.addChild(condition());
+        return astNode;
     }
 
     private Lexeme currentToken() {
         if(point>=lexemes.size()) {
-            point = lexemes.size()-1;
+            return null;
         }
         return lexemes.get(point);
     }
 
-    private void match(List<String> terminal) {
+    private void match(List<String> terminal, AstNode astNode) {
         if(terminal.contains(currentToken().getTerminal().getIdentifier())) {
+            astNode.addChild(new AstNode(currentToken().getTerminal().getIdentifier()));
             point++;
         }
         else {
