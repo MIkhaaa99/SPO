@@ -26,7 +26,7 @@ public class Lexer {
     );
 
     public static void main(String[] args) {
-        String[] str = {"d=d*5; while(a>0){b=b+1;} c=c+1;$"};
+        String[] str = {"a=1+30*(7+10*(5+4))+89; b=100+50*((70+39)+10)*3;$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -45,6 +45,9 @@ public class Lexer {
         System.out.println();
         AstNode astNode = parser.lang();
         printAst(astNode, 0);
+
+        PolishNotation polishNotation = new PolishNotation();
+        System.out.println(polishNotation.getPolishNotation(astNode));
 
         StackMachine stackMachine = new StackMachine();
         System.out.println("\n" + "Выполнение кода: " + stackMachine.execute(List.of("5", "6", ">", "10", "!F", "a" , "5", "=", "13", "!", "b", "6", "=", "!T")));
@@ -127,7 +130,12 @@ public class Lexer {
         Iterator<AstNode> childs = node.getChilds();
         while(childs.hasNext()) {
             AstNode n = childs.next();
-            printAst(n, level+1);
+            if(n.getLexeme()!=null) {
+                System.out.println(getLevel(level) + "\t" + n.getLexeme().toString());
+            }
+            else {
+                printAst(n, level+1);
+            }
         }
     }
 
