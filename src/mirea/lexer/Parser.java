@@ -164,7 +164,6 @@ public class Parser {
 
     private void match(List<String> terminal, AstNode astNode) {
         if(terminal.contains(currentToken().getTerminal().getIdentifier())) {
-            //astNode.addChild(new AstNode(currentToken().getTerminal().getIdentifier()));
             astNode.addChild(currentToken());
             point++;
         }
