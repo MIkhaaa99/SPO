@@ -52,7 +52,7 @@ public class StackMachine {
                 }
                 stringStack.push(String.valueOf(executeBinOperation(operand1, operand2, operation)));
             }
-            else if(polishNotation.get(point).matches("<|>|==|<=|>=")) {
+            else if(polishNotation.get(point).matches("<|>|==|<=|>=|!=")) {
                 String operation = polishNotation.get(point);
                 point++;
                 Integer operand2 = 0;
@@ -137,6 +137,9 @@ public class StackMachine {
         }
         if(operation.equals("==")) {
             return a==b;
+        }
+        if(operation.equals("!=")) {
+            return a!=b;
         }
         throw new RuntimeException();
     }

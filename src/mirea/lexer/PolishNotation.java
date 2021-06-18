@@ -1,9 +1,6 @@
 package mirea.lexer;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 public class PolishNotation {
 
@@ -23,6 +20,15 @@ public class PolishNotation {
 
     private void convertToPN(AstNode node) {
         Iterator<AstNode> childs = node.getChilds();
+        boolean isWhile = false;
+        boolean isElse = false;
+        if(node.getName().equals("whileBody")) {
+            isWhile = true;
+        }
+        if(node.getName().equals("elseBody")) {
+            isElse = true;
+        }
+        Integer endPointForWhile = 0;
         while(childs.hasNext()) {
             AstNode n = childs.next();
             if(n.getLexeme()!=null) {
@@ -45,6 +51,34 @@ public class PolishNotation {
                     }
                     stringStack.pop();
                 }
+                else if(List.of("ELSE_KEYWORD").contains(n.getLexeme().getTerminal().getIdentifier())) {
+                    polishNotation.remove(polishNotation.size()-1);
+                }
+                else if(List.of("L_S_BR").contains(n.getLexeme().getTerminal().getIdentifier())) {
+                    endPointForWhile = polishNotation.size()-3;
+                    if(isElse==false) {
+                        polishNotation.add("_");
+                        polishNotation.add("!F");
+                    }
+                    else {
+                        polishNotation.add("unconditionalJump");
+                        polishNotation.add("!");
+                        polishNotation.set(polishNotation.lastIndexOf("!F")-1, String.valueOf(polishNotation.size()));
+                    }
+                }
+                else if(List.of("R_S_BR").contains(n.getLexeme().getTerminal().getIdentifier())) {
+                    if(isWhile==true) {
+                        polishNotation.add(String.valueOf(endPointForWhile));
+                    }
+                    polishNotation.add("!T");
+                    if(isElse==true) {
+                        polishNotation.set(polishNotation.lastIndexOf("unconditionalJump"), String.valueOf(polishNotation.size()-1));
+                        //polishNotation.set(polishNotation.lastIndexOf("!F")-1, String.valueOf(polishNotation.size()-1));
+                    }
+                    else {
+                        polishNotation.set(polishNotation.lastIndexOf("_"), String.valueOf(polishNotation.size()-1));
+                    }
+                }
                 else if(List.of("SC").contains(n.getLexeme().getTerminal().getIdentifier())) {
                     transferFromStackToPolishNotation();
                 }
@@ -62,6 +96,12 @@ public class PolishNotation {
         }
         else if(List.of("+", "-").contains(lexeme.getValue())) {
             return 10;
+        }
+        else if(List.of(">", "<", ">=", "<=").contains(lexeme.getValue())) {
+            return 8;
+        }
+        else if(List.of("==", "!=").contains(lexeme.getValue())) {
+            return 7;
         }
         else if(List.of("=").contains(lexeme.getValue())) {
             return 5;

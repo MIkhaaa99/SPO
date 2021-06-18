@@ -92,10 +92,10 @@ public class Parser {
     private AstNode ifExpression() {
         AstNode astNode = new AstNode("ifExpression");
         astNode.addChild(ifHead());
-        astNode.addChild(body());
-        if(lexemes.size()<point && List.of("ELSE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
+        astNode.addChild(ifBody());
+        if(lexemes.size()>point && List.of("ELSE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
             astNode.addChild(elseHead());
-            astNode.addChild(body());
+            astNode.addChild(elseBody());
         }
         return astNode;
     }
@@ -125,8 +125,28 @@ public class Parser {
         return astNode;
     }
 
-    private AstNode body() {
-        AstNode astNode = new AstNode("body");
+    private AstNode ifBody() {
+        AstNode astNode = new AstNode("ifBody");
+        match(List.of("L_S_BR"), astNode);
+        while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
+            astNode.addChild(expr());
+        }
+        match(List.of("R_S_BR"), astNode);
+        return astNode;
+    }
+
+    private AstNode elseBody() {
+        AstNode astNode = new AstNode("elseBody");
+        match(List.of("L_S_BR"), astNode);
+        while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
+            astNode.addChild(expr());
+        }
+        match(List.of("R_S_BR"), astNode);
+        return astNode;
+    }
+
+    private AstNode whileBody() {
+        AstNode astNode = new AstNode("whileBody");
         match(List.of("L_S_BR"), astNode);
         while(List.of("VAR", "IF_KEYWORD", "WHILE_KEYWORD").contains(currentToken().getTerminal().getIdentifier())) {
             astNode.addChild(expr());
@@ -144,7 +164,7 @@ public class Parser {
     private AstNode whileExpression() {
         AstNode astNode = new AstNode("whileExpression");
         astNode.addChild(whileHead());
-        astNode.addChild(body());
+        astNode.addChild(whileBody());
         return astNode;
     }
 

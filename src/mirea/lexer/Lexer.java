@@ -17,7 +17,8 @@ public class Lexer {
             new Terminal("ENTER", "\\n+", true),
             new Terminal("LBR", "\\("),
             new Terminal("RBR", "\\)"),
-            new Terminal("LOGICAL_OP", "<|>|==|<=|>="),
+            new Terminal("LOGICAL_OP", "<|>|==|<=|>=|!="),
+            new Terminal("SCREAMER", "!"),
             new Terminal("ASSIGN", "="),
             new Terminal("SC", ";"),
             new Terminal("NUMBER", "0|(-)?[1-9]+[0-9]*"),
@@ -26,7 +27,7 @@ public class Lexer {
     );
 
     public static void main(String[] args) {
-        String[] str = {"a=1+30*(7+10*(5+4))+89; b=100+50*((70+39)+10)*3;$"};
+        String[] str = {"a=5; if(a!=6){b=0;}else{b=6;} c=1; while(b!=5){b=b+1; c=c*2;}$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
@@ -47,10 +48,11 @@ public class Lexer {
         printAst(astNode, 0);
 
         PolishNotation polishNotation = new PolishNotation();
-        System.out.println(polishNotation.getPolishNotation(astNode));
+        List<String> stringListPolishNotation = polishNotation.getPolishNotation(astNode);
+        System.out.println(stringListPolishNotation);
 
         StackMachine stackMachine = new StackMachine();
-        System.out.println("\n" + "Выполнение кода: " + stackMachine.execute(List.of("5", "6", ">", "10", "!F", "a" , "5", "=", "13", "!", "b", "6", "=", "!T")));
+        System.out.println("\n" + "Выполнение кода: " + stackMachine.execute(stringListPolishNotation));
     }
 
     private static Lexeme extractNextLexeme(StringBuilder input) {
