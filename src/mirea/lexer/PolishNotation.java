@@ -91,7 +91,7 @@ public class PolishNotation {
 
     private Integer getPriority(Lexeme lexeme) {
 
-        if(List.of("*", "/").contains(lexeme.getValue())) {
+        if(List.of("*", "/", "%").contains(lexeme.getValue())) {
             return 15;
         }
         else if(List.of("+", "-").contains(lexeme.getValue())) {

@@ -11,7 +11,7 @@ public class Lexer {
             new Terminal("WHILE_KEYWORD", "while", 1),
             new Terminal("IF_KEYWORD", "if", 1),
             new Terminal("ELSE_KEYWORD", "else", 1),
-            new Terminal("OP", "[+-/*]"),
+            new Terminal("OP", "[+-/*%]"),
             new Terminal("WS", "\\s+", true),
             new Terminal("TAB", "\\t+", true),
             new Terminal("ENTER", "\\n+", true),
@@ -27,7 +27,7 @@ public class Lexer {
     );
 
     public static void main(String[] args) {
-        String[] str = {"a=5; if(a!=6){b=0;}else{b=6;} c=1; while(b!=5){b=b+1; c=c*2;}$"};
+        String[] str = {"a=1; b=0; while(a!=5){a=a+1; b=a%2; if(b==0){c=0;}else{c=1;}}$"};
         StringBuilder input = new StringBuilder(lookupInput(str));
         List<Lexeme> lexemes = new ArrayList<>();
 
